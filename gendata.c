@@ -8,9 +8,10 @@ int main(void) {
 	f1 = fopen("proj.glade", "r");
 	f2 = fopen("schema.h", "w");
 	fputs("const char schema[] = \"\\\n", f2);
-	while (!feof(f1)) {
+	while (1) {
 		gchar *dup;
 		fgets(buf, BUFSIZE, f1);
+		if (feof(f1)) break;
 		dup = g_strescape(buf, "");
 		fputs(dup, f2);
 		fputs("\\\n", f2);
