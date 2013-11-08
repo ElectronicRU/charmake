@@ -4,8 +4,8 @@
   <object class="GtkAccelGroup" id="accelgroup_skills"/>
   <object class="GtkAdjustment" id="adj_ap">
     <property name="lower">1</property>
-    <property name="upper">10</property>
-    <property name="value">3</property>
+    <property name="upper">15</property>
+    <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">5</property>
   </object>
@@ -68,6 +68,10 @@
     </columns>
     <data>
       <row>
+        <col id="0" translatable="yes">дробящий</col>
+        <col id="1" translatable="yes">физ/дроб</col>
+      </row>
+      <row>
         <col id="0" translatable="yes">колющий</col>
         <col id="1" translatable="yes">физ/кол</col>
       </row>
@@ -76,16 +80,12 @@
         <col id="1" translatable="yes">физ/реж</col>
       </row>
       <row>
+        <col id="0" translatable="yes">рубящий</col>
+        <col id="1" translatable="yes">физ/руб</col>
+      </row>
+      <row>
         <col id="0" translatable="yes">специальный</col>
         <col id="1" translatable="yes">физ/спец</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">дробящий</col>
-        <col id="1" translatable="yes">физ/дроб</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">режущий</col>
-        <col id="1" translatable="yes">физ/реж</col>
       </row>
       <row>
         <col id="0" translatable="yes">сверхъестественный</col>
@@ -113,8 +113,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="has_frame">False</property>
-                <property name="invisible_char">●</property>
-                <property name="invisible_char_set">True</property>
                 <property name="placeholder_text">Имя</property>
               </object>
               <packing>
@@ -148,8 +146,6 @@
                       <object class="GtkLabel" id="label_class">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="yalign">0.49000000953674316</property>
-                        <property name="label" translatable="yes">Класс: </property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -161,8 +157,6 @@
                       <object class="GtkEntry" id="ent_class">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="invisible_char">●</property>
-                        <property name="invisible_char_set">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -174,8 +168,6 @@
                       <object class="GtkSpinButton" id="spin_level">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="invisible_char">●</property>
-                        <property name="invisible_char_set">True</property>
                         <property name="adjustment">adj_level</property>
                         <property name="numeric">True</property>
                       </object>
@@ -228,8 +220,6 @@
                       <object class="GtkSpinButton" id="spin_hp">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="invisible_char">●</property>
-                        <property name="shadow_type">etched-out</property>
                         <property name="adjustment">adj_hp</property>
                         <property name="numeric">True</property>
                       </object>
@@ -256,7 +246,6 @@
                       <object class="GtkSpinButton" id="spin_fgue">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="invisible_char">●</property>
                         <property name="adjustment">adj_fgue</property>
                         <property name="numeric">True</property>
                       </object>
@@ -282,7 +271,6 @@
                       <object class="GtkLabel" id="label_ap">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="xalign">0.43999999761581421</property>
                         <property name="label" translatable="yes">ОД:</property>
                       </object>
                       <packing>
@@ -296,7 +284,6 @@
                       <object class="GtkSpinButton" id="spin_ap">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="invisible_char">●</property>
                         <property name="adjustment">adj_ap</property>
                         <property name="numeric">True</property>
                       </object>
@@ -349,7 +336,7 @@
                               <object class="GtkEntry" id="entry_weapon">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">●</property>
+                                <property name="invisible_char">?</property>
                                 <property name="placeholder_text">Описание оружия</property>
                               </object>
                               <packing>
@@ -364,7 +351,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="model">liststore_dmtype</property>
-                                <property name="active">1</property>
+                                <property name="active">0</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext1"/>
                                   <attributes>
@@ -383,7 +370,7 @@
                               <object class="GtkSpinButton" id="spinbutton_wpn_dmg">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">●</property>
+                                <property name="invisible_char">?</property>
                                 <property name="adjustment">adj_wpn_dmg</property>
                                 <property name="numeric">True</property>
                               </object>
@@ -446,7 +433,7 @@
                               <object class="GtkEntry" id="entry_armour">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">●</property>
+                                <property name="invisible_char">?</property>
                                 <property name="invisible_char_set">True</property>
                                 <property name="placeholder_text">Описание защиты</property>
                               </object>
@@ -462,7 +449,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="model">liststore_deftype</property>
-                                <property name="active">1</property>
+                                <property name="active">0</property>
                                 <property name="id_column">1</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext2"/>
@@ -482,7 +469,7 @@
                               <object class="GtkSpinButton" id="spinbutton_def_value">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">●</property>
+                                <property name="invisible_char">?</property>
                                 <property name="invisible_char_set">True</property>
                                 <property name="adjustment">adj_def</property>
                                 <property name="numeric">True</property>

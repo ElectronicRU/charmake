@@ -1,5 +1,5 @@
 #include <gtk/gtk.h>
-#include "schema.h"
+#include <stdlib.h>
 
 enum { IS_META = 0, IS_SKILL = 1, NAME = 2, LEVEL = 3 };
 
@@ -120,19 +120,27 @@ void on_name_edited(GtkCellRendererText *obj, gchar *cpath, gchar *new_name,
 	gtk_tree_path_free(path);
 }
 
-void on_level_edited(GtkCellRendererText *obj, gchar *cpath, gchar *new_level,
+void on_level_edited(GtkCellRendererSpin *obj, gchar *cpath, gchar *new_level,
 		gpointer udata) {
-	GtkTreeStore *store = GTK_TREE_STORE((GObject *)udata);
+	GtkTreeStore *store = (GtkTreeStore *)udata;
 	GtkTreePath *path = gtk_tree_path_new_from_string(cpath);
 	GtkAdjustment *adj;
 	GtkTreeIter iter;
+	gdouble value;
+	gchar *errptr;
 
+	printf("obj passed: %p\n", obj);
 	g_object_get(obj, "adjustment", &adj, NULL);
-	printf("level set %s\n", new_level);
+	value = (gdouble)strtol(new_level, &errptr, 0);
+	if (!*errptr && *cpath) {
+		gtk_adjustment_set_value(adj, value);
+	} else {
+		value = gtk_adjustment_get_value(adj);
+	}
 
 	gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, path);
 	gtk_tree_store_set(store, &iter,
-			LEVEL, (gint) gtk_adjustment_get_value(adj),
+			LEVEL, (gint) value,
 			-1);
 	gtk_tree_path_free(path);
 }
@@ -147,16 +155,15 @@ main (int argc, char *argv[])
 	GtkTreeIter iter;
 	int i;
 
-	gtk_init (&argc, &argv);
+	gtk_init(&argc, &argv);
 
-	builder = gtk_builder_new ();
-//	gtk_builder_add_from_file (builder, "proj.glade", &err);
-	gtk_builder_add_from_string(builder, schema, sizeof(schema) - 1, &err);
+	builder = gtk_builder_new();
+	gtk_builder_add_from_file(builder, "proj.glade", &err);
 	if (err != NULL) {
 		puts(err->message);
 	}
 
-	window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
+	window = GTK_WIDGET(gtk_builder_get_object (builder, "window"));
 	store = GTK_TREE_STORE(gtk_builder_get_object(builder, "treestore_skills"));
 
 	gtk_tree_store_clear(store);
@@ -180,12 +187,12 @@ main (int argc, char *argv[])
 		gtk_tree_view_column_set_cell_data_func(col, cr, render_level, NULL, NULL);
 	}
 
-	gtk_builder_connect_signals (builder, NULL);
-	g_object_unref (G_OBJECT (builder));
+	gtk_builder_connect_signals(builder, NULL);
+	g_object_unref(G_OBJECT (builder));
 
-	g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
-	gtk_widget_show (window);
-	gtk_main ();
+	g_signal_connect(window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+	gtk_widget_show(window);
+	gtk_main();
 
 	return 0;
 }
