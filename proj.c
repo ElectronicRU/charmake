@@ -3,17 +3,19 @@
 
 enum { IS_META = 0, IS_SKILL = 1, NAME = 2, LEVEL = 3 };
 
-void 
+void
 on_window_destroy (GObject *object, gpointer user_data)
 {
         gtk_main_quit();
 }
 
-char *meta_skills[] = {
+const char *meta_skills[] = {
 	"<b>Физические навыки</b>",
 	"<b>Ментальные навыки</b>",
 	"<b>Социальные навыки</b>",
 };
+
+const int a6_width = 583, a6_height = 413; // 1/100 of an inch.
 
 void on_skill_remove(GtkAction *action, gpointer udata) {
 	GtkTreeView *tv = GTK_TREE_VIEW((GObject *)udata);
@@ -24,6 +26,7 @@ void on_skill_remove(GtkAction *action, gpointer udata) {
 	gint depth;
 
 	gtk_tree_view_get_cursor(tv, &path, &col);
+	if (path == NULL) return;
 	store = GTK_TREE_STORE(gtk_tree_view_get_model(tv));
 
 	depth = gtk_tree_path_get_depth(path);
@@ -52,6 +55,7 @@ void on_skill_add(GtkAction *action, gpointer udata) {
 	gint depth;
 
 	gtk_tree_view_get_cursor(tv, &path, &col);
+	if (path == NULL) return;
 	store = GTK_TREE_STORE(gtk_tree_view_get_model(tv));
 
 	depth = gtk_tree_path_get_depth(path);
@@ -132,8 +136,8 @@ main (int argc, char *argv[])
 	gtk_init (&argc, &argv);
 
 	builder = gtk_builder_new ();
-//	    gtk_builder_add_from_file (builder, "proj.glade", &err);
- 	gtk_builder_add_from_string(builder, schema, sizeof(schema) - 1, &err);
+//	gtk_builder_add_from_file (builder, "proj.glade", &err);
+	gtk_builder_add_from_string(builder, schema, sizeof(schema) - 1, &err);
 	if (err != NULL) {
 		puts(err->message);
 	}
@@ -163,11 +167,11 @@ main (int argc, char *argv[])
 		gtk_tree_view_column_set_cell_data_func(col, cr, render_level, NULL, NULL);
 	}
 
-	gtk_builder_connect_signals (builder, NULL);          
+	gtk_builder_connect_signals (builder, NULL);
 	g_object_unref (G_OBJECT (builder));
 
 	g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
-	gtk_widget_show (window);       
+	gtk_widget_show (window);
 	gtk_main ();
 
 	return 0;
