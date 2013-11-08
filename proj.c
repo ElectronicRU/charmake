@@ -17,12 +17,14 @@ const char *meta_skills[] = {
 
 const int a6_width = 583, a6_height = 413; // 1/100 of an inch.
 
-void on_skill_remove(GtkAction *action, gpointer udata) {
+void on_skill_remove(GtkToolItem *tool, gpointer udata) {
 	GtkTreeView *tv = GTK_TREE_VIEW((GObject *)udata);
 	GtkTreePath *path = NULL;
 	GtkTreeViewColumn *col = NULL;
 	GtkTreeStore *store;
 	GtkTreeIter iter;
+	GtkTreeIter candidate;
+	gboolean found = TRUE;
 	gint depth;
 
 	gtk_tree_view_get_cursor(tv, &path, &col);
@@ -33,20 +35,32 @@ void on_skill_remove(GtkAction *action, gpointer udata) {
 	if (depth < 2) return;
 	gtk_tree_model_get_iter(GTK_TREE_MODEL(store),
 			&iter, path);
-	if (gtk_tree_store_remove(store, &iter)) {
-		gtk_tree_path_free(path);
-		path = gtk_tree_model_get_path(GTK_TREE_MODEL(store), &iter);
-	} else {
-		gtk_tree_path_up(path);
-		gtk_tree_path_down(path);
+	candidate = iter;
+	/* Trying to find a candidate if going-to-next fails */
+	if (!gtk_tree_model_iter_previous(GTK_TREE_MODEL(store), &candidate)) {
+		if (!gtk_tree_model_iter_parent(GTK_TREE_MODEL(store), &candidate, &iter)) {
+			found = FALSE;
+		}
 	}
-	gtk_tree_view_set_cursor(tv, path, col, FALSE);
+
+	if (gtk_tree_store_remove(store, &iter)) {
+		candidate = iter;
+		found = TRUE;
+	}
+	if (!found) {
+		found = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &candidate);
+	}
 	gtk_tree_path_free(path);
+	if (found) {
+		path = gtk_tree_model_get_path(GTK_TREE_MODEL(store), &candidate);
+		gtk_tree_view_set_cursor(tv, path, col, FALSE);
+		gtk_tree_path_free(path);
+	}
 
 	printf("remove skill %p\n", tv);
 }
 
-void on_skill_add(GtkAction *action, gpointer udata) {
+void on_skill_add(GtkToolItem *tool, gpointer udata) {
 	GtkTreeView *tv = GTK_TREE_VIEW((GObject *)udata);
 	GtkTreePath *path = NULL;
 	GtkTreeViewColumn *col = NULL;
@@ -148,9 +162,6 @@ main (int argc, char *argv[])
 	gtk_tree_store_clear(store);
 	for (i = 0; i < 3; i++) {
 		gtk_tree_store_append(store, &iter, NULL);
-		if (!gtk_tree_store_iter_is_valid(store, &iter)) {
-			puts("HORRIBLE");
-		}
 		gtk_tree_store_set(store, &iter,
 				IS_META, TRUE,
 				IS_SKILL, FALSE,
@@ -164,6 +175,8 @@ main (int argc, char *argv[])
 	{
 		GtkTreeViewColumn *col = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "tvskills_level"));
 		GtkCellRenderer *cr = GTK_CELL_RENDERER(gtk_builder_get_object(builder, "tvskills_cr_level"));
+		gtk_toolbar_set_icon_size(GTK_TOOLBAR(gtk_builder_get_object(builder, "toolbar_skills")),
+				GTK_ICON_SIZE_MENU);
 		gtk_tree_view_column_set_cell_data_func(col, cr, render_level, NULL, NULL);
 	}
 

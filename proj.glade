@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkAction" id="action_skill_add">
-    <signal name="activate" handler="on_skill_add" object="treeview_skills" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="action_skill_remove">
-    <signal name="activate" handler="on_skill_remove" object="treeview_skills" swapped="no"/>
-  </object>
+  <object class="GtkAccelGroup" id="accelgroup_skills"/>
   <object class="GtkAdjustment" id="adj_ap">
     <property name="lower">1</property>
     <property name="upper">10</property>
@@ -100,6 +95,10 @@
   </object>
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Fiend Generator v0.1</property>
+    <accel-groups>
+      <group name="accelgroup_skills"/>
+    </accel-groups>
     <child>
       <object class="GtkBox" id="box_main">
         <property name="visible">True</property>
@@ -617,15 +616,16 @@
                   <object class="GtkToolbar" id="toolbar_skills">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="toolbar_style">icons</property>
                     <child>
-                      <object class="GtkToolButton" id="toolbutton1">
-                        <property name="use_action_appearance">False</property>
-                        <property name="related_action">action_skill_add</property>
+                      <object class="GtkToolButton" id="toolbutton_add">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Add</property>
                         <property name="use_underline">True</property>
                         <property name="stock_id">gtk-add</property>
+                        <accelerator key="n" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                        <signal name="clicked" handler="on_skill_add" object="treeview_skills" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -633,14 +633,14 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkToolButton" id="toolbutton2">
-                        <property name="use_action_appearance">False</property>
-                        <property name="related_action">action_skill_remove</property>
+                      <object class="GtkToolButton" id="toolbutton_remove">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Remove</property>
                         <property name="use_underline">True</property>
                         <property name="stock_id">gtk-remove</property>
+                        <accelerator key="Delete" signal="clicked"/>
+                        <signal name="clicked" handler="on_skill_remove" object="treeview_skills" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
