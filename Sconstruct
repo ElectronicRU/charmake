@@ -1,12 +1,17 @@
 #!python file type
-app_env = Environment(CPPPATH = ".", LINKFLAGS="-rdynamic", CFLAGS="-g")
+import os
+DefaultEnvironment(ENV = dict(PATH=os.environ["PATH"]))
+app_env = Environment(CPPPATH = ".", CFLAGS="-g")
 gen_env = Environment()
-
 app_env.ParseConfig("pkg-config --cflags --libs gtk+-3.0")
 gen_env.ParseConfig("pkg-config --cflags --libs glib-2.0")
+target = app_env["TARGET_OS"]
+if target is None or target.startswith("linux"):
+    app_env.Append(LINKFLAGS="-rdynamic")
 
 build_gendata = gen_env.Program("gendata.c")
-schema_generate = gen_env.Command("schema.h", "proj.glade", "./gendata")
+schema_generate = gen_env.Command("schema.h", "proj.glade",
+                                  build_gendata[0].get_abspath())
 gen_env.Depends(schema_generate, build_gendata)
 
 main_program = app_env.Program(target = "charmake", source = ["proj.c"])
