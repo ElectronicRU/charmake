@@ -591,6 +591,7 @@
                               </object>
                               <attributes>
                                 <attribute name="sensitive">1</attribute>
+                                <attribute name="visible">1</attribute>
                               </attributes>
                             </child>
                           </object>
