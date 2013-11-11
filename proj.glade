@@ -45,7 +45,7 @@
     <columns>
       <!-- column-name display -->
       <column type="gchararray"/>
-      <!-- column-name id -->
+      <!-- column-name short -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -63,7 +63,7 @@
     <columns>
       <!-- column-name display -->
       <column type="gchararray"/>
-      <!-- column-name id -->
+      <!-- column-name short -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -117,6 +117,21 @@
               </object>
               <packing>
                 <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_print">
+                <property name="label">gtk-print</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+                <signal name="clicked" handler="invoke_print" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
@@ -336,7 +351,6 @@
                               <object class="GtkEntry" id="entry_weapon">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">?</property>
                                 <property name="placeholder_text">Описание оружия</property>
                               </object>
                               <packing>
@@ -347,7 +361,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="combobox_wpn_dmtype">
+                              <object class="GtkComboBox" id="combo_wpn_dmtype">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="model">liststore_dmtype</property>
@@ -367,10 +381,9 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSpinButton" id="spinbutton_wpn_dmg">
+                              <object class="GtkSpinButton" id="spin_wpn_dmg">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">?</property>
                                 <property name="adjustment">adj_wpn_dmg</property>
                                 <property name="numeric">True</property>
                               </object>
@@ -433,8 +446,6 @@
                               <object class="GtkEntry" id="entry_armour">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">?</property>
-                                <property name="invisible_char_set">True</property>
                                 <property name="placeholder_text">Описание защиты</property>
                               </object>
                               <packing>
@@ -445,12 +456,11 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkComboBox" id="combobox_def_type">
+                              <object class="GtkComboBox" id="combo_def_type">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="model">liststore_deftype</property>
                                 <property name="active">0</property>
-                                <property name="id_column">1</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext2"/>
                                   <attributes>
@@ -466,11 +476,9 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSpinButton" id="spinbutton_def_value">
+                              <object class="GtkSpinButton" id="spin_def_value">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="invisible_char">?</property>
-                                <property name="invisible_char_set">True</property>
                                 <property name="adjustment">adj_def</property>
                                 <property name="numeric">True</property>
                               </object>
@@ -560,7 +568,8 @@
                               </object>
                               <attributes>
                                 <attribute name="editable">1</attribute>
-                                <attribute name="markup">2</attribute>
+                                <attribute name="text">2</attribute>
+                                <attribute name="weight">0</attribute>
                               </attributes>
                             </child>
                           </object>
@@ -675,8 +684,8 @@
   </object>
   <object class="GtkSizeGroup" id="sizegroup_atkdef_types">
     <widgets>
-      <widget name="combobox_wpn_dmtype"/>
-      <widget name="combobox_def_type"/>
+      <widget name="combo_wpn_dmtype"/>
+      <widget name="combo_def_type"/>
     </widgets>
   </object>
   <object class="GtkSizeGroup" id="sizegroup_labels_common">
@@ -688,8 +697,8 @@
   </object>
   <object class="GtkTreeStore" id="treestore_skills">
     <columns>
-      <!-- column-name is_meta -->
-      <column type="gboolean"/>
+      <!-- column-name fontweight -->
+      <column type="gint"/>
       <!-- column-name is_skill -->
       <column type="gboolean"/>
       <!-- column-name name -->
