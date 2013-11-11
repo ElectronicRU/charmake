@@ -16,7 +16,7 @@ const gchar *meta_skills[] = {
 	"Социальные навыки",
 };
 
-const int a6_width = 1165, a6_height = 827; // 148x105mm, 200dpi
+const int a6_width = 827, a6_height = 1165; // 148x105mm, 200dpi
 const int margin_v = 100, margin_h = 125; // 0.5", 0.625", 200dpi
 
 const gint damage_multipliers[] = {0, 1, 2, 4, 5, 6, 7, 8};
@@ -185,7 +185,11 @@ G_MODULE_EXPORT
 void invoke_print(GObject *stupid_button, GtkBuilder *builder) {
 	GString *result = g_string_new("");
 	GStringChunk *pool = g_string_chunk_new(1024);
-	GC *gc = create_context(a6_width, a6_height, margin_h, margin_v, 200);
+	GC *gc = create_context(a6_width, a6_height, 200);
+
+	draw_nice_progression(gc, margin_h, 50);
+	tmargin(gc, margin_v); bmargin(gc, margin_v);
+	lmargin(gc, margin_h);
 
 	{
 		g_string_printf(result, "%s, %s %d уровня\n",

@@ -9,8 +9,48 @@ struct GC {
 	int width, height;
 	PangoFontDescription *fontdesc;
 	PangoContext *context;
-	PangoRectangle content;
+	double x1, x2, y1, y2;
 };
+
+cairo_path_data_t nice_curve[] = {
+	{.header = {.type=CAIRO_PATH_CURVE_TO, .length=4}},
+	{.point = {.x=0.5, .y=0.25}},
+	{.point = {.x=0.5, .y=0.75}},
+	{.point = {.x=1.0, .y=1.0}}
+};
+
+cairo_path_data_t opening_curve[] = {
+	{.header = {.type=CAIRO_PATH_MOVE_TO, .length=2}},
+	{.point = {.x=-1.0, .y=0.0}},
+	{.header = {.type=CAIRO_PATH_LINE_TO, .length=2}},
+	{.point = {.x=0.0, .y=0.0}},
+};
+
+cairo_path_data_t closing_curve[] = {
+	{.header = {.type=CAIRO_PATH_LINE_TO, .length=2}},
+	{.point = {.x=2.0, .y=1.0}},
+	{.header = {.type=CAIRO_PATH_LINE_TO, .length=2}},
+	{.point = {.x=2.0, .y=-1.0}},
+};
+
+cairo_path_t nice_path = {
+	.status = CAIRO_STATUS_SUCCESS,
+	.data = nice_curve,
+	.num_data = sizeof(nice_curve)/sizeof(nice_curve[0])
+};
+
+cairo_path_t opening_path = {
+	.status = CAIRO_STATUS_SUCCESS,
+	.data = opening_curve,
+	.num_data = sizeof(opening_curve)/sizeof(opening_curve[0])
+};
+
+cairo_path_t closing_path = {
+	.status = CAIRO_STATUS_SUCCESS,
+	.data = closing_curve,
+	.num_data = sizeof(closing_curve)/sizeof(closing_curve[0])
+};
+
 
 /* Fixup tabs. Layout shouldn't have width defined. */
 void align_tabstops_nicely(PangoLayout *layout) {
@@ -70,7 +110,7 @@ void align_tabstops_nicely(PangoLayout *layout) {
 	g_free(tabwidths);
 }
 
-GC *create_context(int width, int height, int hmarg, int vmarg, int ppi) {
+GC *create_context(int width, int height, int ppi) {
 	GC *gc = g_new(GC, 1);
 	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
 	cairo_t *cairo = cairo_create(surface);
@@ -82,9 +122,7 @@ GC *create_context(int width, int height, int hmarg, int vmarg, int ppi) {
 	cairo_fill(cairo);
 
 	cairo_set_source_rgb(cairo, 0.0, 0.0, 0.0);
-	cairo_move_to(cairo, (double) hmarg, (double)vmarg);
 	pango_font_description_set_family(fontdesc, "serif");
-	pango_font_description_set_weight(fontdesc, PANGO_WEIGHT_NORMAL);
 	pango_font_description_set_size(fontdesc, 11 * PANGO_SCALE);
 	pango_cairo_context_set_resolution(context, (double)ppi);
 	pango_cairo_update_context(cairo, context);
@@ -92,14 +130,93 @@ GC *create_context(int width, int height, int hmarg, int vmarg, int ppi) {
 
 	*gc = (GC) { .surface=surface, .cairo=cairo, .width=width,
 		.height=height, .fontdesc=fontdesc, .context=context,
-		.content=(PangoRectangle) {
-			hmarg * PANGO_SCALE, vmarg * PANGO_SCALE,
-			(width - 2*hmarg) * PANGO_SCALE,
-			(height - 2*vmarg) * PANGO_SCALE
-		}
+		.x1 = 0.0, .x2 = width, .y1 = 0.0, .y2 = height
 	};
 
 	return gc;
+}
+
+void draw_nice_progression(GC *gc, double marginsize, int n) {
+	const double linewidth = 2.0;
+	double x, y, width, height;
+	double height_of_half, width_of_one;
+	int i;
+	cairo_matrix_t matrix;
+	PangoFontDescription *fontdesc = pango_font_description_new();
+	PangoLayout *layout = pango_layout_new(gc->context);
+
+	rmargin(gc, marginsize);
+	cairo_identity_matrix(gc->cairo);
+	x = gc->x2 + linewidth;
+	y = gc->y1 + linewidth;
+	height = gc->y2 - 2 * linewidth;
+	width = marginsize - 2 * linewidth;
+
+	height_of_half = height / (n + 1);
+	width_of_one = width / 3.0;
+	// Draw a zig zag
+	cairo_set_line_width(gc->cairo, linewidth);
+	cairo_set_line_cap(gc->cairo, CAIRO_LINE_CAP_ROUND);
+	cairo_set_line_join(gc->cairo, CAIRO_LINE_JOIN_ROUND);
+	for (i = 0; i < n + 1; i ++) {
+		double xorig = x + width_of_one, xx = width_of_one;
+		if (i % 2) {
+			xorig += width_of_one;
+			xx = -xx;
+		}
+		cairo_matrix_init(&matrix,
+			xx, 0.0, 0.0, height_of_half, xorig, y + i * height_of_half);
+		cairo_set_matrix(gc->cairo, &matrix);
+		if (i < 2) {
+			cairo_append_path(gc->cairo, &opening_path);
+		} else {
+			cairo_move_to(gc->cairo, 0.0, 0.0);
+		}
+		cairo_append_path(gc->cairo, &nice_path);
+		if (i)
+			cairo_append_path(gc->cairo, &closing_path);
+		cairo_identity_matrix(gc->cairo);
+		cairo_stroke(gc->cairo);
+	}
+
+	pango_font_description_set_family(fontdesc, "sans");
+	pango_font_description_set_weight(fontdesc, PANGO_WEIGHT_NORMAL);
+	pango_font_description_set_absolute_size(fontdesc, pango_units_from_double(height_of_half));
+	pango_layout_set_font_description(layout, fontdesc);
+	for (i = 1; i <= n; i++) {
+		PangoRectangle extents;
+		double xorig = x + width_of_one;
+		double yorig = y + height_of_half * i;
+		double w, h;
+		if (i % 2 == 0)
+			xorig += width_of_one;
+		char *si = g_strdup_printf("%d", i);
+		pango_layout_set_text(layout, si, -1);
+		g_free(si);
+		pango_layout_get_extents(layout, NULL, &extents);
+		w = pango_units_to_double(extents.width);
+		h = pango_units_to_double(extents.height);
+		cairo_move_to(gc->cairo, xorig - w/2, yorig - h/2);
+		pango_cairo_show_layout(gc->cairo, layout);
+	}
+	g_object_unref(layout);
+	pango_font_description_free(fontdesc);
+}
+
+void lmargin(GC *gc, double margin) {
+	gc->x1 += margin;
+}
+
+void rmargin(GC *gc, double margin) {
+	gc->x2 -= margin;
+}
+
+void tmargin(GC *gc, double margin) {
+	gc->y1 += margin;
+}
+
+void bmargin(GC *gc, double margin) {
+	gc->y2 -= margin;
 }
 
 void render_text_nicely(GC *gc, const char *text) {
@@ -109,10 +226,11 @@ void render_text_nicely(GC *gc, const char *text) {
 	pango_layout_set_font_description(layout, gc->fontdesc);
 	pango_layout_set_markup(layout, text, -1);
 	align_tabstops_nicely(layout);
-	pango_layout_set_width(layout, gc->content.width);
+	pango_layout_set_width(layout, pango_units_from_double(gc->x2 - gc->x1));
+	cairo_move_to(gc->cairo, gc->x1, gc->y1);
 	pango_cairo_show_layout(gc->cairo, layout);
 	pango_layout_get_extents(layout, NULL, &rect);
-	cairo_rel_move_to(gc->cairo, 0.0, ((double)(rect.y + rect.height)) / PANGO_SCALE);
+	tmargin(gc, pango_units_to_double(rect.height));
 	g_object_unref(layout);
 	pango_cairo_update_context(gc->cairo, gc->context);
 }
