@@ -13,25 +13,29 @@ struct GC {
 	double x1, x2, y1, y2;
 };
 
+#define e 0.1
+
 cairo_path_data_t nice_curve[] = {
 	{.header = {.type=CAIRO_PATH_CURVE_TO, .length=4}},
 	{.point = {.x=0.5, .y=0.25}},
 	{.point = {.x=0.5, .y=0.75}},
-	{.point = {.x=1.0, .y=1.0}}
+	{.point = {.x=1.0, .y=1.0-e}}
 };
 
 cairo_path_data_t opening_curve[] = {
 	{.header = {.type=CAIRO_PATH_MOVE_TO, .length=2}},
-	{.point = {.x=-1.0, .y=0.0}},
+	{.point = {.x=-1.0, .y=1.0}},
 	{.header = {.type=CAIRO_PATH_LINE_TO, .length=2}},
-	{.point = {.x=0.0, .y=0.0}},
+	{.point = {.x=-1.0, .y=0.0+e}},
+	{.header = {.type=CAIRO_PATH_LINE_TO, .length=2}},
+	{.point = {.x=0.0, .y=0.0+e}},
 };
 
 cairo_path_data_t closing_curve[] = {
 	{.header = {.type=CAIRO_PATH_LINE_TO, .length=2}},
-	{.point = {.x=2.0, .y=1.0}},
+	{.point = {.x=2.0, .y=1.0-e}},
 	{.header = {.type=CAIRO_PATH_LINE_TO, .length=2}},
-	{.point = {.x=2.0, .y=-1.0}},
+	{.point = {.x=2.0, .y=0.0}},
 };
 
 cairo_path_t nice_path = {
@@ -168,14 +172,18 @@ void draw_nice_progression(GC *gc, double marginsize, int n) {
 		cairo_matrix_init(&matrix,
 			xx, 0.0, 0.0, height_of_half, xorig, y + i * height_of_half);
 		cairo_set_matrix(gc->cairo, &matrix);
-		if (i < 2) {
+		if (i != n) {
 			cairo_append_path(gc->cairo, &opening_path);
 		} else {
-			cairo_move_to(gc->cairo, 0.0, 0.0);
+			cairo_move_to(gc->cairo, -1.0, 0.0 + e);
+			cairo_line_to(gc->cairo, 0.0, 0.0 + e);
 		}
 		cairo_append_path(gc->cairo, &nice_path);
-		if (i)
+		if (i) {
 			cairo_append_path(gc->cairo, &closing_path);
+		} else {
+			cairo_line_to(gc->cairo, 2.0, 1.0 - e);
+		}
 		cairo_identity_matrix(gc->cairo);
 		cairo_stroke(gc->cairo);
 	}
