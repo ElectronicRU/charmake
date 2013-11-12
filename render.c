@@ -181,7 +181,6 @@ void draw_nice_progression(GC *gc, double marginsize, int n) {
 	}
 
 	pango_font_description_set_family(fontdesc, "sans");
-	pango_font_description_set_weight(fontdesc, PANGO_WEIGHT_NORMAL);
 	pango_font_description_set_absolute_size(fontdesc, pango_units_from_double(height_of_half));
 	pango_layout_set_font_description(layout, fontdesc);
 	for (i = 1; i <= n; i++) {

@@ -62,8 +62,6 @@ void on_skill_remove(GtkToolItem *tool, gpointer udata) {
 		gtk_tree_view_set_cursor(tv, path, col, FALSE);
 		gtk_tree_path_free(path);
 	}
-
-	printf("remove skill %p\n", tv);
 }
 
 G_MODULE_EXPORT
@@ -99,8 +97,6 @@ void on_skill_add(GtkToolItem *tool, gpointer udata) {
 	gtk_tree_view_expand_to_path(tv, path);
 	gtk_tree_view_set_cursor(tv, path, col, TRUE);
 	gtk_tree_path_free(path);
-
-	printf("add skill %p\n", tv);
 }
 
 G_MODULE_EXPORT
@@ -139,7 +135,6 @@ void on_level_edited(GtkCellRendererSpin *obj, gchar *cpath, gchar *new_level,
 	gdouble value;
 	gchar *errptr;
 
-	printf("obj passed: %p\n", obj);
 	g_object_get(obj, "adjustment", &adj, NULL);
 	value = (gdouble)strtol(new_level, &errptr, 0);
 	if (!*errptr && *cpath) {
