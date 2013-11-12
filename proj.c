@@ -180,7 +180,7 @@ void render_save(GtkBuilder *builder, const char *fname);
 
 G_MODULE_EXPORT
 void invoke_save(GObject *stupid_button, GtkBuilder *builder) {
-	GtkFileChooserDialog *dialog = gtk_file_chooser_dialog_new("Save as...",
+	GtkWidget *dialog = gtk_file_chooser_dialog_new("Save as...",
 			GTK_WINDOW(gtk_builder_get_object(builder, "window")),
 			GTK_FILE_CHOOSER_ACTION_SAVE,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
@@ -194,7 +194,7 @@ void invoke_save(GObject *stupid_button, GtkBuilder *builder) {
 		g_free(filename);
 	}
 
-	gtk_widget_destroy(GTK_WIDGET(dialog));
+	gtk_widget_destroy(dialog);
 }
 
 void render_save(GtkBuilder *builder, const char *fname) {
