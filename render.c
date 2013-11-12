@@ -185,18 +185,20 @@ void draw_nice_progression(GC *gc, double marginsize, int n) {
 	pango_layout_set_font_description(layout, fontdesc);
 	for (i = 1; i <= n; i++) {
 		PangoRectangle extents;
-		double xorig = x + width_of_one;
+		double xorig = x + width_of_one / 2;
 		double yorig = y + height_of_half * i;
 		double w, h;
 		if (i % 2 == 0)
-			xorig += width_of_one;
+			xorig = x + marginsize - width_of_one / 2;
 		char *si = g_strdup_printf("%d", i);
 		pango_layout_set_text(layout, si, -1);
 		g_free(si);
 		pango_layout_get_extents(layout, NULL, &extents);
 		w = pango_units_to_double(extents.width);
 		h = pango_units_to_double(extents.height);
-		cairo_move_to(gc->cairo, xorig - w/2, yorig - h/2);
+		if (i % 2 == 0)
+			xorig -= w;
+		cairo_move_to(gc->cairo, xorig, yorig - h/2);
 		pango_cairo_show_layout(gc->cairo, layout);
 	}
 	g_object_unref(layout);
