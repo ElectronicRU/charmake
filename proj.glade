@@ -41,6 +41,11 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
+  <object class="GtkFileFilter" id="filefilter">
+    <patterns>
+      <pattern>*.png</pattern>
+    </patterns>
+  </object>
   <object class="GtkListStore" id="liststore_deftype">
     <columns>
       <!-- column-name display -->
@@ -122,13 +127,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_print">
-                <property name="label">gtk-print</property>
+              <object class="GtkButton" id="button_save">
+                <property name="label">gtk-save</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="invoke_print" swapped="no"/>
+                <signal name="clicked" handler="invoke_save" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

@@ -176,8 +176,28 @@ const gchar *combo_field(GtkBuilder *builder, const gchar *name, gint field,
 }
 
 
+void render_save(GtkBuilder *builder, const char *fname);
+
 G_MODULE_EXPORT
-void invoke_print(GObject *stupid_button, GtkBuilder *builder) {
+void invoke_save(GObject *stupid_button, GtkBuilder *builder) {
+	GtkFileChooserDialog *dialog = gtk_file_chooser_dialog_new("Save as...",
+			GTK_WINDOW(gtk_builder_get_object(builder, "window")),
+			GTK_FILE_CHOOSER_ACTION_SAVE,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+			NULL);
+	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog),
+			GTK_FILE_FILTER(gtk_builder_get_object(builder, "filefilter")));
+	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+		char *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		render_save(builder, filename);
+		g_free(filename);
+	}
+
+	gtk_widget_destroy(GTK_WIDGET(dialog));
+}
+
+void render_save(GtkBuilder *builder, const char *fname) {
 	GString *result = g_string_new("");
 	GStringChunk *pool = g_string_chunk_new(1024);
 	GC *gc = create_context(a6_width, a6_height, 200);
@@ -248,7 +268,7 @@ void invoke_print(GObject *stupid_button, GtkBuilder *builder) {
 		} while (gtk_tree_model_iter_next(model, &iter_p));
 		render_text_nicely(gc, result->str);
 	}
-	save_to_png(gc, "test.png");
+	save_to_png(gc, fname);
 	destroy_context(gc);
 	g_string_chunk_free(pool);
 }
@@ -256,7 +276,7 @@ void invoke_print(GObject *stupid_button, GtkBuilder *builder) {
 int main (int argc, char *argv[]) {
 	GError *err = NULL;
 	GtkBuilder *builder; // yadda yadda, globals are bad.
-	GtkWidget *window;
+	GtkWindow *window;
 	GtkTreeStore *store;
 	GtkTreeIter iter;
 	int i;
@@ -269,7 +289,7 @@ int main (int argc, char *argv[]) {
 		puts(err->message);
 	}
 
-	window = GTK_WIDGET(gtk_builder_get_object (builder, "window"));
+	window = GTK_WINDOW(gtk_builder_get_object (builder, "window"));
 	store = GTK_TREE_STORE(gtk_builder_get_object(builder, "treestore_skills"));
 
 	gtk_tree_store_clear(store);
@@ -296,7 +316,7 @@ int main (int argc, char *argv[]) {
 	gtk_builder_connect_signals(builder, builder);
 
 	g_signal_connect(window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
-	gtk_widget_show(window);
+	gtk_widget_show(GTK_WIDGET(window));
 	gtk_main();
 
 	return 0;
