@@ -204,14 +204,17 @@ void draw_nice_progression(GC *gc, double marginsize, int n) {
 }
 
 void draw_bubble_progression(GC *gc, int n, int multiply) {
-	double x, y, width, height, radius, step;
+	const double step_scale = 2.2, space_scale = 0.2;
+	double x, y, width, height, radius, step, space;
 	int i;
 	PangoFontDescription *fontdesc = pango_font_description_new();
 	PangoLayout *layout = pango_layout_new(gc->context);
 	height = gc->y2 - gc->y1;
 	y = gc->y1;
-	step = height / n;
-	radius = step / 2.5;
+	// Height = n * step + n-1 * space;
+	radius = height / (step_scale * n + space_scale * (n - 1));
+	step = radius * step_scale;
+	space = radius * space_scale;
 	width = 2.4 * radius;
 	rmargin(gc, width);
 	x = gc->x2 + width/2;
@@ -221,7 +224,7 @@ void draw_bubble_progression(GC *gc, int n, int multiply) {
 	cairo_set_line_width(gc->cairo, 2.0);
 	for (i = 1; i <= n; i++) {
 		PangoRectangle extents;
-		double yorig = y + step * i - step / 2;
+		double yorig = y + step * i + space * (i - 1) - step / 2;
 		double w, h;
 		char *si = g_strdup_printf("%d", i * multiply);
 		pango_layout_set_text(layout, si, -1);
