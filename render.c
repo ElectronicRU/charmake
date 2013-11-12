@@ -265,6 +265,9 @@ void render_text_nicely(GC *gc, const char *text) {
 	pango_layout_set_font_description(layout, gc->fontdesc);
 	pango_layout_set_markup(layout, text, -1);
 	align_tabstops_nicely(layout);
+	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
+	pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
+	pango_layout_set_height(layout, pango_units_from_double(gc->y2 - gc->y1));
 	pango_layout_set_width(layout, pango_units_from_double(gc->x2 - gc->x1));
 	cairo_move_to(gc->cairo, gc->x1, gc->y1);
 	pango_cairo_show_layout(gc->cairo, layout);

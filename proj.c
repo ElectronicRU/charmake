@@ -201,7 +201,6 @@ void invoke_print(GObject *stupid_button, GtkBuilder *builder) {
 				spin_value(builder, "spin_hp"),
 				spin_value(builder, "spin_fgue"),
 				spin_value(builder, "spin_ap"));
-//		fputs(result->str, stdout);
 		render_text_nicely(gc, result->str);
 	}
 	{
@@ -227,7 +226,6 @@ void invoke_print(GObject *stupid_button, GtkBuilder *builder) {
 			g_string_append_printf(result, ", \t%s", label);
 		}
 		g_string_append_c(result, '\n');
-		//fputs(result->str, stdout);
 		render_text_nicely(gc, result->str);
 	}
 	{
@@ -253,7 +251,6 @@ void invoke_print(GObject *stupid_button, GtkBuilder *builder) {
 			} while (gtk_tree_model_iter_next(model, &iter_c));
 			g_string_append_c(result, '\n');
 		} while (gtk_tree_model_iter_next(model, &iter_p));
-		//fputs(result->str, stdout);
 		render_text_nicely(gc, result->str);
 	}
 	save_to_png(gc, "test.png");
