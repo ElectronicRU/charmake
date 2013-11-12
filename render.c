@@ -2,6 +2,8 @@
 #include <pango/pangocairo.h>
 #include <cairo.h>
 #include <math.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 #include "render.h"
 
 struct GC {
@@ -289,8 +291,20 @@ void render_text_nicely(GC *gc, const char *text) {
 	pango_cairo_update_context(gc->cairo, gc->context);
 }
 
+static
+cairo_status_t simple_png_writer(void *cl, const unsigned char *data, unsigned int length) {
+	FILE *f = (FILE *)cl;
+	fwrite(data, 1, length, f);
+	if (ferror(f)) {
+		return CAIRO_STATUS_WRITE_ERROR;
+	}
+}
+
 void save_to_png(GC *gc, const char *filename) {
-	cairo_surface_write_to_png(gc->surface, filename);
+	// Sadly, on Windows, things are broken (probably by GLib?), but they are fixed (probably by GLib, too).
+	FILE *f = g_fopen(filename, "wb");
+	cairo_surface_write_to_png_stream(gc->surface, simple_png_writer, f);
+	fclose(f);
 }
 
 void destroy_context(GC *gc) {

@@ -3,6 +3,7 @@ import os
 app_env = Environment(CPPPATH = ".", CFLAGS="-g", ENV = dict(PATH=os.environ["PATH"]))
 app_env.ParseConfig("pkg-config --cflags --libs gtk+-3.0")
 app_env.ParseConfig("pkg-config --cflags --libs pangocairo")
+app_env.ParseConfig("pkg-config --cflags --libs glib-2.0")
 
 target = app_env["TARGET_OS"]
 if target is not None and target.startswith("win"):
