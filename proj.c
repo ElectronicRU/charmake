@@ -190,6 +190,7 @@ void invoke_print(GObject *stupid_button, GtkBuilder *builder) {
 	draw_nice_progression(gc, margin_h, 50);
 	tmargin(gc, margin_v); bmargin(gc, margin_v);
 	lmargin(gc, margin_h);
+	draw_bubble_progression(gc, 10, 50);
 
 	{
 		g_string_printf(result, "%s, %s %d уровня\n",

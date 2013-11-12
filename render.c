@@ -1,6 +1,7 @@
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
 #include <cairo.h>
+#include <math.h>
 #include "render.h"
 
 struct GC {
@@ -197,6 +198,44 @@ void draw_nice_progression(GC *gc, double marginsize, int n) {
 		w = pango_units_to_double(extents.width);
 		h = pango_units_to_double(extents.height);
 		cairo_move_to(gc->cairo, xorig - w/2, yorig - h/2);
+		pango_cairo_show_layout(gc->cairo, layout);
+	}
+	g_object_unref(layout);
+	pango_font_description_free(fontdesc);
+}
+
+void draw_bubble_progression(GC *gc, int n, int multiply) {
+	double x, y, width, height, radius, step;
+	int i;
+	PangoFontDescription *fontdesc = pango_font_description_new();
+	PangoLayout *layout = pango_layout_new(gc->context);
+	height = gc->y2 - gc->y1;
+	y = gc->y1;
+	step = height / n;
+	radius = step / 2.5;
+	width = 2.4 * radius;
+	rmargin(gc, width);
+	x = gc->x2 + width/2;
+	pango_font_description_set_family(fontdesc, "sans");
+	pango_font_description_set_absolute_size(fontdesc, pango_units_from_double(radius * 0.7));
+	pango_layout_set_font_description(layout, fontdesc);
+	cairo_set_line_width(gc->cairo, 2.0);
+	for (i = 1; i <= n; i++) {
+		PangoRectangle extents;
+		double yorig = y + step * i - step / 2;
+		double w, h;
+		char *si = g_strdup_printf("%d", i * multiply);
+		pango_layout_set_text(layout, si, -1);
+		g_free(si);
+
+		cairo_new_sub_path(gc->cairo);
+		cairo_arc(gc->cairo, x, yorig, radius, 0, 2 * M_PI);
+		cairo_stroke(gc->cairo);
+
+		pango_layout_get_extents(layout, NULL, &extents);
+		w = pango_units_to_double(extents.width);
+		h = pango_units_to_double(extents.height);
+		cairo_move_to(gc->cairo, x - w/2, yorig - h/2);
 		pango_cairo_show_layout(gc->cairo, layout);
 	}
 	g_object_unref(layout);
