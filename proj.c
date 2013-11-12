@@ -313,6 +313,13 @@ int main (int argc, char *argv[]) {
 		gtk_tree_view_column_set_cell_data_func(col, cr, render_level, NULL, NULL);
 	}
 
+	{
+		gtk_file_filter_set_name(
+				GTK_FILE_FILTER(gtk_builder_get_object(builder, "filefilter")),
+				"Файлы PNG (*.png)"
+		);
+	}
+
 	gtk_builder_connect_signals(builder, builder);
 
 	g_signal_connect(window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
