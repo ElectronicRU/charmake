@@ -4,6 +4,7 @@
 
 enum { FONTWEIGHT = 0, IS_SKILL = 1, NAME = 2, LEVEL = 3 };
 enum { DISPLAY = 0, SHORT = 1 };
+enum { WA_NAME = 0, WA_DMGDEF = 1, WA_TYPE = 2 };
 
 G_MODULE_EXPORT
 void on_window_destroy (GObject *object, gpointer user_data) {
@@ -175,6 +176,20 @@ const gchar *combo_field(GtkBuilder *builder, const gchar *name, gint field,
 	return r;
 }
 
+G_MODULE_EXPORT
+void add_new_strife(GtkEntry *e, GtkEntryIconPosition icon_pos, GdkEvent *event,
+	GtkListStore *store) {
+	GtkTreeIter iter;
+	GtkComboBox *box;
+	if (event->type != GDK_BUTTON_PRESS || event->button.button != 1) {
+		return;
+	}
+	gtk_list_store_insert_with_values(store, &iter, -1,
+		WA_NAME, "test", WA_DMGDEF, 0, WA_TYPE, 0, -1);
+	box = GTK_COMBO_BOX(gtk_widget_get_parent(GTK_WIDGET(e)));
+	gtk_combo_box_set_active_iter(box, &iter);
+}
+
 
 void render_save(GtkBuilder *builder, const char *fname);
 
@@ -318,6 +333,15 @@ int main (int argc, char *argv[]) {
 				GTK_FILE_FILTER(gtk_builder_get_object(builder, "filefilter")),
 				"Файлы PNG (*.png)"
 		);
+	}
+	{
+		GtkComboBox *box = GTK_COMBO_BOX(gtk_builder_get_object(builder, "combo_wpn_mastery"));
+		GtkTreePath *path = gtk_tree_path_new_from_indices(0, -1);
+		GtkTreeModel *f = gtk_tree_model_filter_new(
+			GTK_TREE_MODEL(gtk_builder_get_object(builder, "treestore_skills")),
+			path);
+		gtk_tree_path_free(path);
+		gtk_combo_box_set_model(box, GTK_TREE_MODEL(f));
 	}
 
 	gtk_builder_connect_signals(builder, builder);
