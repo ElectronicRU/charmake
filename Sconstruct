@@ -1,6 +1,6 @@
 #!python file type
 import os
-app_env = Environment(CPPPATH = ".", CFLAGS="-g", ENV = dict(PATH=os.environ["PATH"]))
+app_env = Environment(CPPPATH = ".", CFLAGS=["-g", "-Wall"], ENV = dict(PATH=os.environ["PATH"]))
 app_env.ParseConfig("pkg-config --cflags --libs gtk+-3.0")
 app_env.ParseConfig("pkg-config --cflags --libs pangocairo")
 app_env.ParseConfig("pkg-config --cflags --libs glib-2.0")
@@ -15,4 +15,4 @@ if target is not None and target.startswith("win"):
 else:
     app_env.Append(LINKFLAGS="-Wl,--export-dynamic")
 
-main = app_env.Program(target = "charmake", source = ["proj.c", "render.c"])
+main = app_env.Program(target = "charmake", source = ["proj.c", "render.c", "strife.c", "skills.c"])

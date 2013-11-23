@@ -359,6 +359,133 @@
               </packing>
             </child>
             <child>
+              <object class="GtkBox" id="tab_skills">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkFrame" id="frame_skills">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label_xalign">0</property>
+                    <property name="shadow_type">none</property>
+                    <child>
+                      <object class="GtkTreeView" id="treeview_skills">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="model">treestore_skills</property>
+                        <property name="expander_column">tvskills_name</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection" id="tvskills_selection"/>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="tvskills_name">
+                            <property name="resizable">True</property>
+                            <property name="title" translatable="yes">Название</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="tvskills_cr_name">
+                                <signal name="edited" handler="on_name_edited" object="treestore_skills" swapped="no"/>
+                              </object>
+                              <attributes>
+                                <attribute name="editable">1</attribute>
+                                <attribute name="text">2</attribute>
+                                <attribute name="weight">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="tvskills_level">
+                            <property name="sizing">autosize</property>
+                            <property name="title" translatable="yes">Уровень</property>
+                            <child>
+                              <object class="GtkCellRendererSpin" id="tvskills_cr_level">
+                                <property name="editable">True</property>
+                                <property name="adjustment">adj_skill_level</property>
+                                <signal name="edited" handler="on_level_edited" object="treestore_skills" swapped="no"/>
+                              </object>
+                              <attributes>
+                                <attribute name="sensitive">1</attribute>
+                                <attribute name="visible">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="label">
+                      <object class="GtkLabel" id="label_frm_skills">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Навыки&lt;/b&gt;</property>
+                        <property name="use_markup">True</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolbar" id="toolbar_skills">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="toolbar_style">icons</property>
+                    <child>
+                      <object class="GtkToolButton" id="toolbutton_add">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Add</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-add</property>
+                        <accelerator key="n" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
+                        <signal name="clicked" handler="on_skill_add" object="treeview_skills" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkToolButton" id="toolbutton_remove">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Remove</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-remove</property>
+                        <accelerator key="Delete" signal="clicked"/>
+                        <signal name="clicked" handler="on_skill_remove" object="treeview_skills" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="label_tab_skills">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Навыки</property>
+              </object>
+              <packing>
+                <property name="tab_fill">False</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkBox" id="tab_strife">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
@@ -681,7 +808,7 @@
                 </child>
               </object>
               <packing>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
             <child type="tab">
@@ -689,134 +816,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">Бой</property>
-              </object>
-              <packing>
-                <property name="position">1</property>
-                <property name="tab_fill">False</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkBox" id="tab_skills">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkFrame" id="frame_skills">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label_xalign">0</property>
-                    <property name="shadow_type">none</property>
-                    <child>
-                      <object class="GtkTreeView" id="treeview_skills">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="model">treestore_skills</property>
-                        <property name="expander_column">tvskills_name</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="tvskills_selection"/>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="tvskills_name">
-                            <property name="resizable">True</property>
-                            <property name="title" translatable="yes">Название</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="tvskills_cr_name">
-                                <signal name="edited" handler="on_name_edited" object="treestore_skills" swapped="no"/>
-                              </object>
-                              <attributes>
-                                <attribute name="editable">1</attribute>
-                                <attribute name="text">2</attribute>
-                                <attribute name="weight">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="tvskills_level">
-                            <property name="sizing">autosize</property>
-                            <property name="title" translatable="yes">Уровень</property>
-                            <child>
-                              <object class="GtkCellRendererSpin" id="tvskills_cr_level">
-                                <property name="editable">True</property>
-                                <property name="adjustment">adj_skill_level</property>
-                                <signal name="edited" handler="on_level_edited" object="treestore_skills" swapped="no"/>
-                              </object>
-                              <attributes>
-                                <attribute name="sensitive">1</attribute>
-                                <attribute name="visible">1</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child type="label">
-                      <object class="GtkLabel" id="label_frm_skills">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">&lt;b&gt;Навыки&lt;/b&gt;</property>
-                        <property name="use_markup">True</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkToolbar" id="toolbar_skills">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="toolbar_style">icons</property>
-                    <child>
-                      <object class="GtkToolButton" id="toolbutton_add">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Add</property>
-                        <property name="use_underline">True</property>
-                        <property name="stock_id">gtk-add</property>
-                        <accelerator key="n" signal="clicked" modifiers="GDK_CONTROL_MASK"/>
-                        <signal name="clicked" handler="on_skill_add" object="treeview_skills" swapped="no"/>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="homogeneous">True</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkToolButton" id="toolbutton_remove">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Remove</property>
-                        <property name="use_underline">True</property>
-                        <property name="stock_id">gtk-remove</property>
-                        <accelerator key="Delete" signal="clicked"/>
-                        <signal name="clicked" handler="on_skill_remove" object="treeview_skills" swapped="no"/>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="homogeneous">True</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="label_tab_skills">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Навыки</property>
               </object>
               <packing>
                 <property name="position">2</property>

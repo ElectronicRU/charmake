@@ -298,6 +298,7 @@ cairo_status_t simple_png_writer(void *cl, const unsigned char *data, unsigned i
 	if (ferror(f)) {
 		return CAIRO_STATUS_WRITE_ERROR;
 	}
+	return CAIRO_STATUS_SUCCESS;
 }
 
 void save_to_png(GC *gc, const char *filename) {
