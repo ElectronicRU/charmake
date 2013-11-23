@@ -6,7 +6,7 @@
 GType filter_types[] = {G_TYPE_STRING, G_TYPE_INT};
 enum { FONTWEIGHT = 0, IS_SKILL = 1, NAME = 2, LEVEL = 3 };
 enum { DISPLAY = 0, SHORT = 1 };
-enum { WA_NAME = 0, WA_DMGDEF = 1, WA_TYPE = 2 };
+enum { STRIFE_NAME = 0, STRIFE_VALUE = 1, STRIFE_TYPE = 2 };
 enum { WPN_USE_SKILL = 5, WPN_MASTERY_SKILL = 4, WPN_MASTERY = 3 };
 enum { FILTER_NAME = 0, FILTER_LVL = 1 };
 
@@ -162,22 +162,27 @@ void add_new_strife(GtkEntry *e, GtkEntryIconPosition icon_pos, GdkEvent *event,
 		return;
 	}
 	gtk_list_store_insert_with_values(store, &iter, -1,
-		WA_NAME, "test", WA_DMGDEF, 0, WA_TYPE, 0, -1);
+		STRIFE_NAME, "", STRIFE_VALUE, 0, STRIFE_TYPE, 0, -1);
 	box = GTK_COMBO_BOX(gtk_widget_get_parent(GTK_WIDGET(e)));
 	gtk_combo_box_set_active_iter(box, &iter);
+	gtk_widget_set_can_focus(GTK_WIDGET(e), TRUE);
+	gtk_widget_grab_focus(GTK_WIDGET(e));
 }
 
 G_MODULE_EXPORT
 void change_strife(GtkComboBox *box, GtkGrid *grid) {
 	GtkTreeModel *ls = gtk_combo_box_get_model(box);
 	GtkTreeIter i;
-	gtk_widget_set_sensitive(GTK_WIDGET(grid),
-			gtk_tree_model_get_iter_first(ls, &i));
+	gboolean nonempty = gtk_tree_model_get_iter_first(ls, &i);
+	GtkWidget *internal = gtk_bin_get_child(GTK_BIN(box));
+	gtk_widget_set_sensitive(GTK_WIDGET(grid), nonempty);
+	gtk_editable_set_editable(GTK_EDITABLE(internal), nonempty);
+	gtk_widget_set_can_focus(internal, nonempty);
 	if (!gtk_combo_box_get_active_iter(box, &i)) {
 		// just some text typed
 		return;
 	}
-	g_object_set_data_full(G_OBJECT(box), "last-selection",
+	g_object_set_data_full(G_OBJECT(box), "last-selected",
 			gtk_tree_model_get_string_from_iter(ls, &i),
 			g_free);
 	{
@@ -187,7 +192,7 @@ void change_strife(GtkComboBox *box, GtkGrid *grid) {
 				gtk_grid_get_child_at(grid, 3, 0));
 		GtkComboBox *c = GTK_COMBO_BOX(
 				gtk_grid_get_child_at(grid, 0, 0));
-		gtk_tree_model_get(ls, &i, WA_DMGDEF, &damage, WA_TYPE, &dmtype, -1);
+		gtk_tree_model_get(ls, &i, STRIFE_VALUE, &damage, STRIFE_TYPE, &dmtype, -1);
 		gtk_spin_button_set_value(btn, (gdouble)damage);
 		gtk_combo_box_set_active_id(c, dmtype);
 		g_free(dmtype);
@@ -230,7 +235,6 @@ void show_strife_mastery(GtkToggleButton *btn, GParamSpec *spec, GtkGrid *grid) 
 	gtk_widget_set_sensitive(GTK_WIDGET(skillcombo), active);
 	gtk_widget_set_sensitive(GTK_WIDGET(btn), can_be_active);
 	
-	}
 	if (active) {
 		if (gtk_combo_box_get_active_iter(skillcombo, &it)) {
 			gint lvl;
@@ -238,6 +242,60 @@ void show_strife_mastery(GtkToggleButton *btn, GParamSpec *spec, GtkGrid *grid) 
 			gtk_spin_button_set_value(spinlvl, (gdouble)lvl);
 		}
 	}
+}
+
+static
+gboolean match(const char *pattern, const char *string) {
+	do {
+		if (*pattern != '.' && *pattern != *string)
+			return 0;
+	} while (*pattern++ && *string++);
+	return 1;
+}
+
+void update_strife(GtkComboBox *box, GtkWidget *w) {
+	GtkListStore *ls = GTK_LIST_STORE(gtk_combo_box_get_model(box));
+	gchar *path = g_object_get_data(G_OBJECT(box), "last-selected");
+	GValue value = G_VALUE_INIT;
+	GtkTreeIter it;
+	const gchar *wname = gtk_buildable_get_name(GTK_BUILDABLE(w));
+	gint column = -1;
+	if (!path) { // the fuck, should've been nonsensitive
+		return;
+	}
+	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ls), &it, path);
+	if (match("combo_entry_......", wname)) {
+		// special case; delete if empty
+		const gchar *text = gtk_entry_get_text(GTK_ENTRY(w));
+		if (!text || !*text) {
+			if (gtk_list_store_remove(ls, &it)) {
+				gtk_combo_box_set_active_iter(box, &it);
+			} else {
+				gtk_combo_box_set_active_iter(box, NULL);
+			}
+			return;
+		}
+		g_value_init(&value, G_TYPE_STRING);
+		g_value_set_static_string(&value, text);
+		column = STRIFE_NAME;
+	} else if (match("spin_..._value", wname)) {
+		GtkSpinButton *spval = GTK_SPIN_BUTTON(w);
+		gint val = gtk_spin_button_get_value_as_int(spval);
+		g_value_init(&value, G_TYPE_INT);
+		g_value_set_int(&value, val);
+		//column = STRIFE_VALUE;
+		//gtk_list_store_set(ls, &it, STRIFE_VALUE, val, -1);
+	} else if (match("combo_..._type", wname)) {
+		GtkComboBox *tbox = GTK_COMBO_BOX(w);
+		const gchar *id = gtk_combo_box_get_active_id(tbox);
+		g_value_init(&value, G_TYPE_STRING);
+		g_value_set_static_string(&value, id);
+		column = STRIFE_TYPE;
+	}
+	if (column != -1) {
+		gtk_list_store_set_value(ls, &it, column, &value);
+	}
+	g_value_unset(&value);
 }
 
 void render_save(GtkBuilder *builder, const char *fname);

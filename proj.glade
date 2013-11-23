@@ -388,9 +388,16 @@
                                 <property name="has_entry">True</property>
                                 <property name="entry_text_column">0</property>
                                 <signal name="changed" handler="change_strife" object="subgrid_atk" swapped="no"/>
+                                <child>
+                                  <object class="GtkCellRendererText" id="crt_weapon"/>
+                                  <attributes>
+                                    <attribute name="text">2</attribute>
+                                  </attributes>
+                                </child>
                                 <child internal-child="entry">
                                   <object class="GtkEntry" id="combo_entry_weapon">
-                                    <property name="can_focus">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="editable">False</property>
                                     <property name="primary_icon_stock">gtk-add</property>
                                     <signal name="activate" handler="update_strife" object="combo_weapon" swapped="yes"/>
                                     <signal name="icon-press" handler="add_new_strife" object="liststore_weapons" swapped="no"/>
@@ -565,6 +572,12 @@
                                 <property name="has_entry">True</property>
                                 <property name="entry_text_column">0</property>
                                 <signal name="changed" handler="change_strife" object="subgrid_def" swapped="no"/>
+                                <child>
+                                  <object class="GtkCellRendererText" id="crt_armour"/>
+                                  <attributes>
+                                    <attribute name="text">2</attribute>
+                                  </attributes>
+                                </child>
                                 <child internal-child="entry">
                                   <object class="GtkEntry" id="combo_entry_armour">
                                     <property name="can_focus">False</property>
