@@ -10,6 +10,8 @@ enum { STRIFE_NAME = 0, STRIFE_VALUE = 1, STRIFE_TYPE = 2 };
 enum { WPN_USE_SKILL = 5, WPN_MASTERY_SKILL = 4, WPN_MASTERY = 3 };
 enum { FILTER_NAME = 0, FILTER_LVL = 1 };
 
+const char *LAST_SELECTED = "last-selected";
+
 
 G_MODULE_EXPORT
 void on_window_destroy (GObject *object, gpointer user_data) {
@@ -162,11 +164,12 @@ void add_new_strife(GtkEntry *e, GtkEntryIconPosition icon_pos, GdkEvent *event,
 		return;
 	}
 	gtk_list_store_insert_with_values(store, &iter, -1,
-		STRIFE_NAME, "", STRIFE_VALUE, 0, STRIFE_TYPE, 0, -1);
+		STRIFE_NAME, "Добавлено", STRIFE_VALUE, 0, STRIFE_TYPE, 0, -1);
 	box = GTK_COMBO_BOX(gtk_widget_get_parent(GTK_WIDGET(e)));
 	gtk_combo_box_set_active_iter(box, &iter);
 	gtk_widget_set_can_focus(GTK_WIDGET(e), TRUE);
 	gtk_widget_grab_focus(GTK_WIDGET(e));
+	gtk_editable_select_region(GTK_EDITABLE(e), 0, -1);
 }
 
 G_MODULE_EXPORT
@@ -182,7 +185,7 @@ void change_strife(GtkComboBox *box, GtkGrid *grid) {
 		// just some text typed
 		return;
 	}
-	g_object_set_data_full(G_OBJECT(box), "last-selected",
+	g_object_set_data_full(G_OBJECT(box), LAST_SELECTED,
 			gtk_tree_model_get_string_from_iter(ls, &i),
 			g_free);
 	{
@@ -218,6 +221,7 @@ void change_strife(GtkComboBox *box, GtkGrid *grid) {
 	}
 }
 
+G_MODULE_EXPORT
 void show_strife_mastery(GtkToggleButton *btn, GParamSpec *spec, GtkGrid *grid) {
 	gboolean active = gtk_toggle_button_get_active(btn);
 	GtkSpinButton *spinlvl = GTK_SPIN_BUTTON(gtk_grid_get_child_at(grid, 3, 1));
@@ -253,28 +257,19 @@ gboolean match(const char *pattern, const char *string) {
 	return 1;
 }
 
+G_MODULE_EXPORT
 void update_strife(GtkComboBox *box, GtkWidget *w) {
 	GtkListStore *ls = GTK_LIST_STORE(gtk_combo_box_get_model(box));
-	gchar *path = g_object_get_data(G_OBJECT(box), "last-selected");
+	gchar *path = g_object_get_data(G_OBJECT(box), LAST_SELECTED);
 	GValue value = G_VALUE_INIT;
 	GtkTreeIter it;
 	const gchar *wname = gtk_buildable_get_name(GTK_BUILDABLE(w));
 	gint column = -1;
-	if (!path) { // the fuck, should've been nonsensitive
+	if (!path || !gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ls), &it, path))
 		return;
-	}
-	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ls), &it, path);
 	if (match("combo_entry_......", wname)) {
 		// special case; delete if empty
 		const gchar *text = gtk_entry_get_text(GTK_ENTRY(w));
-		if (!text || !*text) {
-			if (gtk_list_store_remove(ls, &it)) {
-				gtk_combo_box_set_active_iter(box, &it);
-			} else {
-				gtk_combo_box_set_active_iter(box, NULL);
-			}
-			return;
-		}
 		g_value_init(&value, G_TYPE_STRING);
 		g_value_set_static_string(&value, text);
 		column = STRIFE_NAME;
@@ -296,6 +291,24 @@ void update_strife(GtkComboBox *box, GtkWidget *w) {
 		gtk_list_store_set_value(ls, &it, column, &value);
 	}
 	g_value_unset(&value);
+}
+
+G_MODULE_EXPORT
+void possibly_delete(GtkEntry *e, GtkComboBox *box) {
+	const gchar *text = gtk_entry_get_text(e);
+	GtkListStore *ls = GTK_LIST_STORE(gtk_combo_box_get_model(box));
+	gchar *path = g_object_get_data(G_OBJECT(box), LAST_SELECTED);
+	GtkTreeIter it;
+	if (!path || !gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ls), &it, path))
+		return;
+	if (!text || !*text) {
+		if (gtk_list_store_remove(ls, &it)) {
+			gtk_combo_box_set_active_iter(box, &it);
+		} else {
+			gtk_combo_box_set_active_iter(box, NULL);
+		}
+		return;
+	}
 }
 
 void render_save(GtkBuilder *builder, const char *fname);
