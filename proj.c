@@ -1,10 +1,15 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
+#include <string.h>
 #include "render.h"
 
+GType filter_types[] = {G_TYPE_STRING, G_TYPE_INT};
 enum { FONTWEIGHT = 0, IS_SKILL = 1, NAME = 2, LEVEL = 3 };
 enum { DISPLAY = 0, SHORT = 1 };
 enum { WA_NAME = 0, WA_DMGDEF = 1, WA_TYPE = 2 };
+enum { WPN_USE_SKILL = 5, WPN_MASTERY_SKILL = 4, WPN_MASTERY = 3 };
+enum { FILTER_NAME = 0, FILTER_LVL = 1 };
+
 
 G_MODULE_EXPORT
 void on_window_destroy (GObject *object, gpointer user_data) {
@@ -85,8 +90,7 @@ void on_skill_add(GtkToolItem *tool, gpointer udata) {
 			&i1, path);
 	gtk_tree_path_free(path);
 
-	gtk_tree_store_append(store, &i2, &i1);
-	gtk_tree_store_set(store, &i2,
+	gtk_tree_store_insert_with_values(store, &i2, &i1, -1,
 			FONTWEIGHT, 400,
 			IS_SKILL, TRUE,
 			NAME, "",
@@ -130,7 +134,6 @@ G_MODULE_EXPORT
 void on_level_edited(GtkCellRendererSpin *obj, gchar *cpath, gchar *new_level,
 		gpointer udata) {
 	GtkTreeStore *store = (GtkTreeStore *)udata;
-	GtkTreePath *path = gtk_tree_path_new_from_string(cpath);
 	GtkAdjustment *adj;
 	GtkTreeIter iter;
 	gdouble value;
@@ -144,36 +147,10 @@ void on_level_edited(GtkCellRendererSpin *obj, gchar *cpath, gchar *new_level,
 		value = gtk_adjustment_get_value(adj);
 	}
 
-	gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, path);
+	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(store), &iter, cpath);
 	gtk_tree_store_set(store, &iter,
 			LEVEL, (gint) value,
 			-1);
-	gtk_tree_path_free(path);
-}
-
-const gchar *entry_text(GtkBuilder *builder, const gchar *name) {
-	return gtk_entry_get_text(
-			GTK_ENTRY(gtk_builder_get_object(builder, name))
-	);
-}
-
-gint spin_value(GtkBuilder *builder, const gchar *name) {
-	return gtk_spin_button_get_value_as_int(
-			GTK_SPIN_BUTTON(gtk_builder_get_object(builder, name))
-	);
-}
-
-const gchar *combo_field(GtkBuilder *builder, const gchar *name, gint field,
-		GStringChunk *pool) {
-	GtkComboBox *box = GTK_COMBO_BOX(gtk_builder_get_object(builder, name));
-	GtkTreeModel *model = gtk_combo_box_get_model(box);
-	GtkTreeIter iter;
-	gchar *s, *r;
-	gtk_combo_box_get_active_iter(box, &iter);
-	gtk_tree_model_get(model, &iter, field, &s, -1);
-	r = g_string_chunk_insert(pool, s);
-	g_free(s);
-	return r;
 }
 
 G_MODULE_EXPORT
@@ -190,6 +167,78 @@ void add_new_strife(GtkEntry *e, GtkEntryIconPosition icon_pos, GdkEvent *event,
 	gtk_combo_box_set_active_iter(box, &iter);
 }
 
+G_MODULE_EXPORT
+void change_strife(GtkComboBox *box, GtkGrid *grid) {
+	GtkTreeModel *ls = gtk_combo_box_get_model(box);
+	GtkTreeIter i;
+	gtk_widget_set_sensitive(GTK_WIDGET(grid),
+			gtk_tree_model_get_iter_first(ls, &i));
+	if (!gtk_combo_box_get_active_iter(box, &i)) {
+		// just some text typed
+		return;
+	}
+	g_object_set_data_full(G_OBJECT(box), "last-selection",
+			gtk_tree_model_get_string_from_iter(ls, &i),
+			g_free);
+	{
+		gint damage;
+		gchar *dmtype;
+		GtkSpinButton *btn = GTK_SPIN_BUTTON(
+				gtk_grid_get_child_at(grid, 3, 0));
+		GtkComboBox *c = GTK_COMBO_BOX(
+				gtk_grid_get_child_at(grid, 0, 0));
+		gtk_tree_model_get(ls, &i, WA_DMGDEF, &damage, WA_TYPE, &dmtype, -1);
+		gtk_spin_button_set_value(btn, (gdouble)damage);
+		gtk_combo_box_set_active_id(c, dmtype);
+		g_free(dmtype);
+	}
+	if (gtk_tree_model_get_n_columns(ls) > 3) {
+		gboolean use_skill;
+		gint skill_lvl;
+		gchar *skill;
+		GtkToggleButton *c = GTK_TOGGLE_BUTTON(
+				gtk_grid_get_child_at(grid, 0, 1));
+		GtkComboBox *sb = GTK_COMBO_BOX(
+				gtk_grid_get_child_at(grid, 1, 1));
+		GtkSpinButton *lsp = GTK_SPIN_BUTTON(
+				gtk_grid_get_child_at(grid, 3, 1));
+		gtk_tree_model_get(ls, &i, WPN_USE_SKILL, &use_skill,
+				WPN_MASTERY_SKILL, &skill, WPN_MASTERY, &skill_lvl, -1);
+		gtk_spin_button_set_value(lsp, (gdouble)skill_lvl);
+		use_skill = gtk_combo_box_set_active_id(sb, skill) && use_skill;
+		// notify toggle button, since its handler corrects actual values
+		// and sensitivities
+		g_object_set(G_OBJECT(c), "active", use_skill, NULL);
+		g_free(skill);
+	}
+}
+
+void show_strife_mastery(GtkToggleButton *btn, GParamSpec *spec, GtkGrid *grid) {
+	gboolean active = gtk_toggle_button_get_active(btn);
+	GtkSpinButton *spinlvl = GTK_SPIN_BUTTON(gtk_grid_get_child_at(grid, 3, 1));
+	GtkComboBox *skillcombo = GTK_COMBO_BOX(
+			gtk_grid_get_child_at(grid, 1, 1));
+	GtkTreeModel *tm = gtk_combo_box_get_model(skillcombo);
+	GtkTreeIter it;
+	gboolean can_be_active = gtk_tree_model_get_iter_first(tm, &it); // basically, "nonempty"
+
+	if (!can_be_active) {
+		active = FALSE;
+		gtk_toggle_button_set_active(btn, FALSE);
+	}
+	gtk_editable_set_editable(GTK_EDITABLE(spinlvl), !active);
+	gtk_widget_set_sensitive(GTK_WIDGET(skillcombo), active);
+	gtk_widget_set_sensitive(GTK_WIDGET(btn), can_be_active);
+	
+	}
+	if (active) {
+		if (gtk_combo_box_get_active_iter(skillcombo, &it)) {
+			gint lvl;
+			gtk_tree_model_get(tm, &it, FILTER_LVL, &lvl, -1);
+			gtk_spin_button_set_value(spinlvl, (gdouble)lvl);
+		}
+	}
+}
 
 void render_save(GtkBuilder *builder, const char *fname);
 
@@ -210,6 +259,31 @@ void invoke_save(GObject *stupid_button, GtkBuilder *builder) {
 	}
 
 	gtk_widget_destroy(dialog);
+}
+
+const gchar *combo_field(GtkBuilder *builder, const gchar *name, gint field,
+		GStringChunk *pool) {
+	GtkComboBox *box = GTK_COMBO_BOX(gtk_builder_get_object(builder, name));
+	GtkTreeModel *model = gtk_combo_box_get_model(box);
+	GtkTreeIter iter;
+	gchar *s, *r;
+	gtk_combo_box_get_active_iter(box, &iter);
+	gtk_tree_model_get(model, &iter, field, &s, -1);
+	r = g_string_chunk_insert(pool, s);
+	g_free(s);
+	return r;
+}
+
+const gchar *entry_text(GtkBuilder *builder, const gchar *name) {
+	return gtk_entry_get_text(
+			GTK_ENTRY(gtk_builder_get_object(builder, name))
+	);
+}
+
+gint spin_value(GtkBuilder *builder, const gchar *name) {
+	return gtk_spin_button_get_value_as_int(
+			GTK_SPIN_BUTTON(gtk_builder_get_object(builder, name))
+	);
 }
 
 void render_save(GtkBuilder *builder, const char *fname) {
@@ -288,6 +362,42 @@ void render_save(GtkBuilder *builder, const char *fname) {
 	g_string_chunk_free(pool);
 }
 
+char *MASTERY_PREFIX = "Использование оружия: ";
+
+gboolean filter_mastery_skills(GtkTreeModel *model,
+		GtkTreeIter *iter,
+		gpointer data) {
+	gchar *prefix = data;
+	gchar *name;
+	gboolean res;
+	gtk_tree_model_get(model, iter, NAME, &name, -1);
+	res = name && (strncmp(prefix, name, strlen(prefix)) == 0);
+	g_free(name);
+	return res;
+}
+
+
+void show_mastery_skill(GtkTreeModel *m,
+		GtkTreeIter *iter,
+		GValue *value,
+		gint column,
+		gpointer data) {
+	GtkTreeModelFilter *filter = GTK_TREE_MODEL_FILTER(m);
+	char *prefix = data;
+	GtkTreeIter citer;
+	GtkTreeModel *real = gtk_tree_model_filter_get_model(filter);
+	gtk_tree_model_filter_convert_iter_to_child_iter(filter, &citer, iter);
+	if (column == FILTER_LVL) {
+		g_value_unset(value);
+		gtk_tree_model_get_value(real, &citer, LEVEL, value);
+	} else {
+		gchar *name;
+		gtk_tree_model_get(real, &citer, NAME, &name, -1);
+		g_value_take_string(value, g_strdup(name + strlen(prefix)));
+		g_free(name);
+	}
+}
+
 int main (int argc, char *argv[]) {
 	GError *err = NULL;
 	GtkBuilder *builder; // yadda yadda, globals are bad.
@@ -340,6 +450,15 @@ int main (int argc, char *argv[]) {
 		GtkTreeModel *f = gtk_tree_model_filter_new(
 			GTK_TREE_MODEL(gtk_builder_get_object(builder, "treestore_skills")),
 			path);
+		gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(f),
+				filter_mastery_skills,
+				MASTERY_PREFIX,
+				NULL);
+		gtk_tree_model_filter_set_modify_func(GTK_TREE_MODEL_FILTER(f),
+				G_N_ELEMENTS(filter_types), filter_types,
+				show_mastery_skill,
+				MASTERY_PREFIX,
+				NULL);
 		gtk_tree_path_free(path);
 		gtk_combo_box_set_model(box, GTK_TREE_MODEL(f));
 	}
