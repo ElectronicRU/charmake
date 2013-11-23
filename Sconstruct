@@ -5,9 +5,13 @@ app_env.ParseConfig("pkg-config --cflags --libs gtk+-3.0")
 app_env.ParseConfig("pkg-config --cflags --libs pangocairo")
 app_env.ParseConfig("pkg-config --cflags --libs glib-2.0")
 
+AddOption("--win", dest="windows", action="store_true", default=False)
+
 target = app_env["TARGET_OS"]
 if target is not None and target.startswith("win"):
     app_env.Append(LINKFLAGS="-Wl,--export-all-symbols")
+    if GetOption("windows"):
+         app_env.Append(LINKFLAGS="-mwindows")
 else:
     app_env.Append(LINKFLAGS="-Wl,--export-dynamic")
 
